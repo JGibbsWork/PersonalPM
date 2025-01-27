@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    image: your_app_image:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - ENV_VAR=your_value
+    volumes:
+      - .:/app
