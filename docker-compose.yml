@@ -1,14 +1,11 @@
-version: '3.8'
+version: "3.7"
 
 services:
-  app:
-    image: your_app_image:latest
+  fastapi-app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3003:3003"
-    environment:
-      - ENV_VAR=your_value
-    volumes:
-      - .:/app
+      - "8000:8000"
+    env_file:
+      - .env
