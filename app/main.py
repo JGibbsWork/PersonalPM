@@ -1,7 +1,10 @@
 # app/main.py
 from fastapi import FastAPI
 from app.routes import calls  # Import routes
-from app.services import openai_service
+from dotenv import load_dotenv
+
+load_dotenv(override=True)  # Load environment variables from .env
+
 
 app = FastAPI()
 print("FastAPI application started")

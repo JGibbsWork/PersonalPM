@@ -1,25 +1,20 @@
-# app/routes/calls.py
 import os
-from fastapi import APIRouter, Form, Request
+from app.services.twilio_service import make_call
+from fastapi import APIRouter, Request
 from fastapi.responses import PlainTextResponse
 from twilio.twiml.voice_response import VoiceResponse, Gather
-from app.services.calendar_service import findTodaysEvents
 from app.services.conversation_manager import ConversationManager
-from app.utils.helpers import convert_iso_to_readable_time
-from app.config import OPENAI_API_KEY
 
 router = APIRouter()
 
 current_riddle = None
 
-
-conv_manager = ConversationManager(
-    api_key=OPENAI_API_KEY,
-)
-
+conv_manager = ConversationManager()
 
 @router.post("/voice")
+
 async def voice(request: Request):
+    print("Received Twilio request")
     form_data = await request.form()
     # Twilio will post either SpeechResult (from speech recognition) or Digits.
     user_input = form_data.get("SpeechResult") or form_data.get("Digits", "")
@@ -46,6 +41,8 @@ async def trigger_call():
     """Start a Twilio call."""
     try:
         call_id = make_call()
+        print(f"Call initiated with ID: {call_id}")
         return {"status": "success", "call_id": call_id}
     except Exception as e:
+        print(f"Error making call: {e}")
         return {"status": "error", "message": str(e)}

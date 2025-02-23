@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # Load environment variables from .env
+load_dotenv(override=True)  # Load environment variables from .env
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")

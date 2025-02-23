@@ -3,54 +3,55 @@ from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from app.services.calendar_service import findTodaysEvents
-
+from app.config import OPENAI_API_KEY
 
 class ConversationManager:
-    def __init__(self, api_key: str):
-        # Initialize your LLM (OpenAI API is used here)
-        self.llm = OpenAI(api_key=api_key)
+    def __init__(self):
+
+        self.llm = OpenAI(api_key=OPENAI_API_KEY)
+        self.events = findTodaysEvents()
         self.prompt_template = PromptTemplate(
             input_variables=["chat_history", "user_input", "custom_json"],
             template=(
+                "You are an aggressive, motivating, and somewhat mean assistant. "
+                "Don't hold back—be blunt, direct, and challenge the user while still offering motivation. "
+                "Use a tone that is confident and forceful. \n\n"
                 "Conversation history:\n{chat_history}\n\n"
                 "User said: {user_input}\n"
                 "Additional context: {custom_json}\n\n"
-                "Based on the above, generate a conversational and context-aware response."
+                "Based on the above, generate a response in the style described."
             )
         )
-        self.conversation_chain = LLMChain(llm=self.llm, prompt=self.prompt_template)
-        # This example uses a simple string for conversation history.
-        # In production, manage state per user (e.g., using the caller's phone number).
         self.conversation_history = ""
-
-    def fetch_custom_json(self):
-        """Fetch custom JSON data from your external API."""
-        try:
-            response = findTodaysEvents()
-            return response.json()
-        except Exception:
-            return {"error": "Failed to retrieve custom JSON"}
-
     def initiate_conversation(self) -> str:
-        """
-        For the first interaction, use the custom JSON to determine a dynamic starter message.
-        Expects the JSON to contain a key 'starter'.
-        """
-        custom_json = self.fetch_custom_json()
-        starter = custom_json.get("starter", "Hello, how can I help you today?")
-        self.conversation_history += f"AI: {starter}\n"
+    
+        events = self.events
+
+        if events and isinstance(events, list):
+            # Build a message from the events list; adjust keys as needed.
+            event_messages = []
+            for event in events:
+                name = event.get("summary", "An event")
+                time = event.get("start", "an unknown time")
+                event_messages.append(f"{name} at {time}")
+            events_message = "Good morning! Let's start the day. You have the following upcoming events: " + ", ".join(event_messages) + ". You ready to tackle the day?"
+        else:
+            events_message = "There are no upcoming events. You ready to make the most out of the day?"
+
+        # Optionally, combine with additional context from custom_json if necessary.
+        starter = events_message
+
+        self.conversation_history += f"{starter}\n"
         return starter
 
     def continue_conversation(self, user_input: str) -> str:
-        """
-        Generate a context-aware response using the entire conversation history,
-        the latest user input, and current custom JSON context.
-        """
-        custom_json = self.fetch_custom_json()
-        response = self.conversation_chain.run(
+        custom_json = self.events
+        prompt_str = self.prompt_template.format(
             chat_history=self.conversation_history,
             user_input=user_input,
             custom_json=custom_json
         )
-        self.conversation_history += f"User: {user_input}\nAI: {response}\n"
+        
+        response = self.llm(prompt_str)
+        self.conversation_history += f"User: {user_input}\n{response}\n"
         return response
