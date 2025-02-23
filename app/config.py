@@ -11,7 +11,7 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 TO_PHONE_NUMBER = os.getenv("TO_PHONE_NUMBER")
 
 # OpenAI
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPEN_AI_KEY")
 
 # Additional things
 
