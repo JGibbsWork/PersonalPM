@@ -1,5 +1,5 @@
 # Use the official Python image
-FROM python:3.9-slim-buster
+FROM arm32v7/python:3.9-slim
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy requirements and install dependencies
 COPY requirements.txt .
 RUN cat requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY . .
