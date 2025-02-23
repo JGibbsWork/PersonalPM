@@ -1,5 +1,5 @@
 # Use the official Python image
-FROM arm32v7/python:3.9-slim
+FROM python:3.9-slim
 
 # Set the working directory inside the container
 WORKDIR /app
