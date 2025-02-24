@@ -39,7 +39,7 @@ async def voice(request: Request):
     return PlainTextResponse(str(twilio_response), media_type="application/xml")
 
 
-@router.post("/trigger-call")
+@router.get("/trigger-call")
 async def trigger_call():
     """Start a Twilio call."""
     try:
