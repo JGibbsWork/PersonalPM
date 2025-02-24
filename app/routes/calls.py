@@ -11,8 +11,11 @@ current_riddle = None
 
 conv_manager = ConversationManager()
 
-@router.post("/voice")
+@router.get("/")
+async def index():
+    return {"message": "Hello, World!"}
 
+@router.post("/voice")
 async def voice(request: Request):
     print("Received Twilio request")
     form_data = await request.form()
