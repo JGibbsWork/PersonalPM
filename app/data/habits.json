@@ -1,0 +1,28 @@
+{
+  "habits": [
+    {
+      "name": "Wake at 6:00am",
+      "target_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      "success_count": 0,
+      "failure_count": 0,
+      "last_checked": null,
+      "last_status": null
+    },
+    {
+      "name": "Complete workout",
+      "target_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"],
+      "success_count": 0,
+      "failure_count": 0,
+      "last_checked": null,
+      "last_status": null
+    },
+    {
+      "name": "Meal plan adherence",
+      "target_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      "success_count": 0,
+      "failure_count": 0,
+      "last_checked": null,
+      "last_status": null
+    }
+  ]
+}

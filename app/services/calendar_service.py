@@ -24,11 +24,17 @@ def findTodaysEvents():
 
 def fetch_and_store_events():
     response = requests.get(EVENTS_API_URL)
+    print('************')
+    print(response.json())
     if response.status_code == 200:
-        events = response.json()
-        for event in events:
-            collection.insert_one(event)
-        print("Events for today have been added to the database.")
-        return events
+        if (response.json() == 'You have no events scheduled for today.'):
+            print("You have no events scheduled for today.")
+            return []
+        else:
+            events = response.json()
+            for event in events:
+                collection.insert_one(event)
+            print("Events for today have been added to the database.")
+            return events
     else:
         print(f"Failed to fetch events. Status code: {response.status_code}")

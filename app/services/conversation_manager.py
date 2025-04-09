@@ -1,14 +1,21 @@
 import requests
-from langchain.llms import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from app.services.calendar_service import findTodaysEvents
 from app.config import OPENAI_API_KEY
 
+api_key=OPENAI_API_KEY
+print(api_key)
+
 class ConversationManager:
     def __init__(self):
 
-        self.llm = OpenAI(api_key=OPENAI_API_KEY)
+        self.llm = ChatOpenAI(
+            model="gpt-4-turbo",
+            temperature=0.7,
+            openai_api_key=api_key
+            )
         self.events = findTodaysEvents()
         self.prompt_template = PromptTemplate(
             input_variables=["chat_history", "user_input", "custom_json"],
@@ -29,13 +36,16 @@ class ConversationManager:
         events = self.events
 
         if events and isinstance(events, list):
-            # Build a message from the events list; adjust keys as needed.
-            event_messages = []
-            for event in events:
-                name = event.get("summary", "An event")
-                time = event.get("start", "an unknown time")
-                event_messages.append(f"{name} at {time}")
-            events_message = "Good morning! Let's start the day. You have the following upcoming events: " + ", ".join(event_messages) + ". You ready to tackle the day?"
+            if len(events) > 0:
+                # Build a message from the events list; adjust keys as needed.
+                event_messages = []
+                for event in events:
+                    name = event.get("summary", "An event")
+                    time = event.get("start", "an unknown time")
+                    event_messages.append(f"{name} at {time}")
+                events_message = "Good morning! Let's start the day. You have the following upcoming events: " + ", ".join(event_messages) + ". You ready to tackle the day?"
+            else:
+                events_message = "Good morning! You have no upcoming events. You ready to make the most out of the day?"
         else:
             events_message = "There are no upcoming events. You ready to make the most out of the day?"
 
