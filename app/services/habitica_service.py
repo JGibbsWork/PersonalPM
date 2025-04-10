@@ -22,6 +22,16 @@ class HabiticaService:
             return response.json()["data"]
         else:
             return []
+        
+    def get_missed_count_yesterday(self):
+        """Estimate missed dailies from yesterday based on due and completion status."""
+        dailies = self.get_dailies()
+        missed = [
+            h for h in dailies
+            if not h.get('completed', False) and not h.get('isDue', True)
+        ]
+        return len(missed)
+
 
     def create_punishment_task(self, text: str):
         """Create a punishment To-Do."""

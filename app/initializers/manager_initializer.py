@@ -8,9 +8,9 @@ from managers.conversation_manager import ConversationManager
 def initialize_managers(services):
     morning_manager = MorningManager(
         habitica_service=services["habitica_service"],
-        calendar_service=services["habitica_service"],  # TEMP: Swap to real calendar service later
+        calendar_service=services["calendar_service"], 
         obedience_service=services["obedience_service"],
-        mantra_service=services["habitica_service"],  # TEMP: Swap to real mantra service later
+        mantra_service=services["mantra_service"],  # TEMP: Swap to real mantra service later
         tone_service=services["tone_service"]
     )
 

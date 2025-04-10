@@ -5,7 +5,7 @@ from langchain.schema import SystemMessage, HumanMessage
 from utils.prompt_loader import load_prompt
 from config.env_config import OPENAI_API_KEY
 
-api_key=OPENAI_API_KE
+api_key=OPENAI_API_KEY
 
 class MantraService:
     def __init__(self):

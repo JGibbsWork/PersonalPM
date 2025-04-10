@@ -27,10 +27,12 @@ class MorningManager:
         obedience_score = self.obedience_service.get_current_obedience_score()
 
         # Pull mantra
-        mantra = self.mantra_service.get_random_mantra()
+        mantra, repetitions = self.mantra_service.generate_mantra()
 
         # Pull tone (friendly if high obedience, harsh if low)
-        tone = self.tone_service.get_tone_based_on_obedience()
+        obedience_score = self.obedience_service.get_current_obedience_score()
+        tone = self.tone_service.get_tone_based_on_obedience(obedience_score)
+
 
         # Build the payload
         context_payload = {
