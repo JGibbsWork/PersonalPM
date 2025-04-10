@@ -3,7 +3,7 @@ from app.services.twilio_service import make_call
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import PlainTextResponse
 from twilio.twiml.voice_response import VoiceResponse, Gather
-from app.services.conversation_manager import ConversationManager
+from app.managers.conversation_manager import ConversationManager
 from app.services.mantra_service import MantraService
 import random
 

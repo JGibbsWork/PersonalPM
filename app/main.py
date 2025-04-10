@@ -1,108 +1,139 @@
-# main.py
+# /app/main.py
 
-import sys
 import os
 import time
 import schedule
 from dotenv import load_dotenv
 
+# === Load env vars ===
+load_dotenv()
 
-# ✅ This forces Python to recognize /app/ as a module
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-# Now regular imports will work
-from services.twilio_call_service import TwilioCallService
+# === Services ===
 from services.habitica_service import HabiticaService
 from services.obedience_service import ObedienceService
 from services.punishment_service import PunishmentService
+from services.mantra_service import MantraService
+from services.twilio_call_service import TwilioCallService
 from services.sentiment_service import SentimentService
+from services.penance_service import PenanceService
+from services.punishment_selector_service import PunishmentSelectorService
+from services.calendar_service import findTodaysEvents
+from services.tone_service import ToneService
+from services.failure_tracker_service import FailureTrackerService
+from services.escalation_manager_service import EscalationManagerService
+from services.obedience_lockdown_manager import ObedienceLockdownManager
+from services.punishment_context_processor import PunishmentContextProcessor
+from services.punishment_generator_service import PunishmentGeneratorService
 
-# (rest of your code here)
+# === Managers ===
+from managers.morning_manager import MorningManager
+from managers.midday_manager import MiddayManager
+from managers.evening_manager import EveningManager
+from managers.conversation_manager import ConversationManager
 
-load_dotenv()
-
-# === Initialize Services ===
-twilio_service = TwilioCallService()
+# === Initialize services ===
 habitica_service = HabiticaService()
 obedience_service = ObedienceService()
 punishment_service = PunishmentService()
+mantra_service = MantraService()
+twilio_service = TwilioCallService()
 sentiment_service = SentimentService()
+punishment_selector_service = PunishmentSelectorService()
+penance_service = PenanceService(habitica_service=habitica_service, punishment_selector_service=punishment_selector_service)
+calendar_service = findTodaysEvents
+tone_service = ToneService()
+failure_tracker_service = FailureTrackerService()
+punishment_context_processor = PunishmentContextProcessor()
+
+raw_punishment_notes = """
+Your full dump of punishment philosophy text goes here — for MVP you can use a small sample.
+"""
+punishment_doctrine = punishment_context_processor.process_raw_notes(raw_punishment_notes)
+
+
+punishment_generator_service = PunishmentGeneratorService(punishment_doctrine)
+
+
+escalation_manager_service = EscalationManagerService(
+    punishment_generator_service=punishment_generator_service,
+    failure_tracker_service=failure_tracker_service,
+    penance_service=penance_service
+)
+
+obedience_lockdown_manager = ObedienceLockdownManager(habitica_service=habitica_service)
+
+
+# === Initialize managers ===
+morning_manager = MorningManager(
+    habitica_service=habitica_service,
+    calendar_service=calendar_service,
+    obedience_service=obedience_service,
+    mantra_service=mantra_service,
+    tone_service=tone_service
+)
+
+midday_manager = MiddayManager(
+    habitica_service=habitica_service,
+    obedience_service=obedience_service,
+    tone_service=tone_service
+)
+
+evening_manager = EveningManager(
+    habitica_service=habitica_service,
+    obedience_service=obedience_service,
+    punishment_service=punishment_selector_service,
+    tone_service=tone_service,
+    failure_tracker_service=failure_tracker_service,
+    escalation_manager_service=escalation_manager_service,
+    obedience_lockdown_manager=obedience_lockdown_manager
+)
+
+conversation_manager = ConversationManager()
 
 # === Config ===
-USER_PHONE_NUMBER = os.getenv('TO_PHONE_NUMBER')  # Your phone number (E.164 format)
+USER_PHONE_NUMBER = os.getenv('USER_PHONE_NUMBER')
 MORNING_CALL_TIME = "06:30"
 MIDDAY_PUSH_TIME = "12:00"
-EVENING_CALL_TIME = "19:33"
+EVENING_CALL_TIME = "19:30"
 
-# === Morning Ritual ===
-def morning_call_flow():
-    print("🔔 Starting Morning Call Flow...")
+# === Daily Ritual Flows ===
 
-    # 1. Pull today's dailies
-    dailies = habitica_service.get_dailies()
-    print(dailies)
-    daily_texts = [d.get('text', 'Unnamed Task') for d in dailies]
-    print(daily_texts)
+def morning_ritual_flow():
+    print("🌅 Morning Ritual Starting...")
+    context_payload = morning_manager.build_context_payload()
+    starter_message = conversation_manager.initiate_conversation(context_payload)
+    twilio_service.send_sms(USER_PHONE_NUMBER, starter_message)
+    print("✅ Morning Ritual Complete.")
 
-    # 2. Make Morning Call
-    # For MVP: Send SMS listing today's key tasks instead of real call
-    body = f"Good morning! Your tasks today:\n" + "\n".join(f"- {task}" for task in daily_texts)
-    print(body)
-    twilio_service.send_sms(USER_PHONE_NUMBER, body)
+def midday_motivation_flow():
+    print("🏋️ Midday Motivation Push...")
+    context_payload = midday_manager.build_context_payload()
+    starter_message = conversation_manager.initiate_conversation(context_payload)
+    twilio_service.send_sms(USER_PHONE_NUMBER, starter_message)
+    print("✅ Midday Motivation Sent.")
 
-    print("✅ Morning SMS sent with today's tasks.")
+def evening_ritual_flow():
+    print("🌙 Evening Ritual Starting...")
+    context_payload = evening_manager.build_context_payload()
+    starter_message = conversation_manager.initiate_conversation(context_payload)
+    
+    twilio_service.send_sms(USER_PHONE_NUMBER, starter_message)
 
-# === Midday Push (Motivation / Threat) ===
-def midday_push_flow():
-    print("📨 Sending Midday Nudge...")
-    body = "⚡ Stay obedient! Log your habits or suffer consequences later."
-    twilio_service.send_sms(USER_PHONE_NUMBER, body)
-    print("✅ Midday SMS sent.")
+    print("✅ Evening Ritual Complete.")
 
-# === Evening Ritual ===
-def evening_call_flow():
-    print("🌙 Starting Evening Call Flow...")
+# === Scheduling the Rituals ===
 
-    # 1. Pull today's dailies
-    dailies = habitica_service.get_dailies()
-
-    completed = [d for d in dailies if d.get('completed', False)]
-    total = len(dailies)
-
-    success = len(completed) == total
-
-    # 2. Update obedience
-    obedience_service.update_obedience(success=success)
-    punishment_level = obedience_service.get_punishment_level()
-
-    # 3. Handle punishment if needed
-    if not success:
-        punishment = punishment_service.choose_punishment(punishment_level)
-        habitica_service.create_punishment_task(punishment)
-
-        body = f"⚠️ You failed your habits today.\nPunishment assigned: {punishment} (check Habitica)"
-    else:
-        body = "🌟 You were obedient today. No punishments assigned. Good job!"
-
-    # 4. Evening Call (MVP = SMS first)
-    twilio_service.send_sms(USER_PHONE_NUMBER, body)
-
-    print("✅ Evening SMS sent.")
-
-# === Schedule the Daily Flows ===
 def schedule_daily_flows():
-    schedule.every().day.at(MORNING_CALL_TIME).do(morning_call_flow)
-    schedule.every().day.at(MIDDAY_PUSH_TIME).do(midday_push_flow)
-    schedule.every().day.at(EVENING_CALL_TIME).do(evening_call_flow)
+    schedule.every().day.at(MORNING_CALL_TIME).do(morning_ritual_flow)
+    schedule.every().day.at(MIDDAY_PUSH_TIME).do(midday_motivation_flow)
+    schedule.every().day.at(EVENING_CALL_TIME).do(evening_ritual_flow)
 
-morning_call_flow()
+# === Entry Point ===
 
-# === Main Entry Point ===
 if __name__ == "__main__":
     print("🚀 PersonalPM Enforcement Engine Starting...")
     schedule_daily_flows()
 
-    # Main loop
     while True:
         schedule.run_pending()
         time.sleep(10)
