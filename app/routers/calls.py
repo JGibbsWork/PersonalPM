@@ -5,6 +5,7 @@ from fastapi.responses import PlainTextResponse
 from twilio.twiml.voice_response import VoiceResponse, Gather
 from app.services.conversation_manager import ConversationManager
 from app.services.mantra_service import MantraService
+import random
 
 router = APIRouter()
 mantra_service = MantraService()
@@ -65,33 +66,35 @@ async def trigger_call():
 async def repeat(request: Request):
     form = await request.form()
     speech_result = form.get("SpeechResult", "").lower()
+
     mantra = request.query_params.get("mantra", "").lower()
     reps_left = int(request.query_params.get("reps_left", 0))
 
-    response = VoiceResponse()
-
+    # Clean speech and mantra
     cleaned_speech = speech_result.strip().lower().replace(".", "").replace(",", "")
     cleaned_mantra = mantra.strip().lower().replace(".", "").replace(",", "")
 
+    response = VoiceResponse()
+
     if cleaned_mantra in cleaned_speech:
-        if mantra in speech_result:
-            reps_left -= 1
-            if reps_left <= 0:
-                response.say("Good. Now receive your instructions.", voice='Polly.Matthew', language='en-US')
-                response.redirect("/voice/summary")
-                return Response(content=str(response), media_type="application/xml")
-            else:
-                gather = Gather(
-                    input='speech',
-                    timeout=5,
-                    speech_timeout='auto',
-                    action=f"/voice/repeat?mantra={mantra}&reps_left={reps_left}",
-                    method="POST"
-                )
-                gather.say("Again.", voice='Polly.Matthew', language='en-US')
-                response.append(gather)
-                return Response(content=str(response), media_type="application/xml")
+        reps_left -= 1
+
+        if reps_left <= 0:
+            response.say("Good. Now receive your instructions.", voice='Polly.Matthew', language='en-US')
+            response.redirect("/voice/summary")
+            return Response(content=str(response), media_type="application/xml")
         else:
+            # Say something BEFORE gathering again
+            repeat_phrases = [
+                "Again.",
+                "Repeat it.",
+                "Say it once more.",
+                "Another time, pet.",
+                "You will say it again, without hesitation."
+            ]
+            phrase = random.choice(repeat_phrases)
+            response.say(phrase, voice='Polly.Matthew', language='en-US')
+
             gather = Gather(
                 input='speech',
                 timeout=5,
@@ -99,10 +102,24 @@ async def repeat(request: Request):
                 action=f"/voice/repeat?mantra={mantra}&reps_left={reps_left}",
                 method="POST"
             )
-            response.say("Say it properly.", voice='Polly.Matthew', language='en-US')
+            gather.say("Say it now.", voice='Polly.Matthew', language='en-US')
             response.append(gather)
-            return Response(content=str(response), media_type="application/xml")
 
+            return Response(content=str(response), media_type="application/xml")
+    else:
+        gather = Gather(
+            input='speech',
+            timeout=5,
+            speech_timeout='auto',
+            action=f"/voice/repeat?mantra={mantra}&reps_left={reps_left}",
+            method="POST"
+        )
+        response.say("Incorrect. The mantra is:", voice='Polly.Matthew', language='en-US')
+        response.say(f"{mantra}", voice='Polly.Matthew', language='en-US')
+        gather.say("Say it now.", voice='Polly.Matthew', language='en-US')
+        response.append(gather)
+
+        return Response(content=str(response), media_type="application/xml")
             
 
 @router.post("/voice/summary")

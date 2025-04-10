@@ -1,8 +1,7 @@
-# app/services/mantra_service.py
-
 import re
 from langchain_openai import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
+from app.utils.prompt_loader import load_prompt
 
 from app.config import OPENAI_API_KEY
 
@@ -16,6 +15,7 @@ class MantraService:
             temperature=0.7,
             openai_api_key=api_key
         )
+        self.system_prompt = load_prompt("app/prompts/dom.txt")
         self.system_prompt = """[PASTE YOUR FULL DOMINANT OVERSEER PROMPT HERE]"""
 
     def generate_mantra(self):

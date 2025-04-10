@@ -4,6 +4,7 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from app.services.calendar_service import findTodaysEvents
 from app.config import OPENAI_API_KEY
+from app.utils.prompt_loader import load_prompt
 
 api_key=OPENAI_API_KEY
 print(api_key)
@@ -16,6 +17,7 @@ class ConversationManager:
             temperature=0.7,
             openai_api_key=api_key
             )
+        self.system_prompt = load_prompt("app/prompts/dom.txt")
         self.events = findTodaysEvents()
         self.prompt_template = PromptTemplate(
             input_variables=["chat_history", "user_input", "custom_json"],
