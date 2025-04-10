@@ -1,0 +1,28 @@
+{
+    "punishment_categories": {
+      "physical": ["Do 50 push-ups.", "Run 1 mile without stopping."],
+      "mental": ["Write a 500-word essay on obedience.", "Spend 30 minutes meditating."],
+      "lifestyle": ["No screens after 6 PM.", "Delete social media apps for 24h."],
+      "financial": ["Donate $5 to a punishment fund.", "Cancel one entertainment subscription."],
+      "humiliation": ["Record a public apology video.", "Write 1000 lines of 'I must obey.'"]
+    },
+    "escalation_ladder": {
+      "light": "Physical or mental task",
+      "medium": "Physical + mental + lifestyle",
+      "heavy": "Full day lockdown with multiple punishments",
+      "special": "Public humiliation task + multi-day protocol"
+    },
+    "punishment_examples_by_severity": {
+      "light": ["50 push-ups", "Meditation"],
+      "medium": ["100 burpees", "Cold shower", "Donation"],
+      "heavy": ["Full screen ban 48h", "5000-word essay"],
+      "special": ["Public confession video"]
+    },
+    "behavioral_triggers": {
+      "missed habits": "light",
+      "missed meetings": "medium",
+      "penance failure": "heavy",
+      "aggressive disobedience": "special"
+    }
+  }
+  

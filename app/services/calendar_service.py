@@ -1,7 +1,7 @@
 import requests
 from pymongo import MongoClient
 from datetime import datetime, timedelta
-from config import MONGO_URI, EVENTS_API_URL
+from config.env_config import MONGO_URI, EVENTS_API_URL
 
 client = MongoClient(MONGO_URI)
 db = client["test"]

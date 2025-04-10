@@ -4,7 +4,7 @@ import requests
 from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from config import OPENAI_API_KEY
+from config.env_config import OPENAI_API_KEY
 from utils.prompt_loader import load_prompt
 from services.sentiment_service import SentimentService
 from services.obedience_service import ObedienceService
